@@ -82,6 +82,7 @@ import re
 
 
 def determine_and_convert(vertex_group_name):
+    '''转换顶点组名称'''
     # 定义左右边的标识符及其转换规则
     sides = [
         {"left": "_L_", "right": "_R_"},
@@ -109,9 +110,11 @@ def determine_and_convert(vertex_group_name):
     # 如果没有找到任何匹配的标识符，返回原名称
     print(vertex_group_name)
     return vertex_group_name
+def Recognize_vg_name(vg_name):
 
 
-def Mirrir_based_on_selection():
+
+def Mirror_based_on_selection():
     # 获取当前活动对象
     objs = bpy.context.selected_objects
     rig = next((obj for obj in objs if obj.type == 'ARMATURE'), None)
@@ -123,14 +126,15 @@ def Mirrir_based_on_selection():
     for b in rig.data.bones:
         if b.select:
             select_vg.append(b.name)
-    vgs = bpy.context.object.vertex_groups
-
-    # 创建一个空列表，用于存储使用的顶点组名称
-    unused_vg = []
-
-    # 遍历所有顶点组
-    for v_group in vgs:
-        pass
+    return select_vg
+def Mirror_based_on_LR():
+    obj=bpy.context.object
+    v_groups=[]
+    if obj.type == 'MESH':
+        if obj.mirror_settings.left_right=='-x':
+            for vg in obj.vertex_groups:
+                if
+                v_groups.append(vg.name)
 
 def create_mirrored():
     # 获取当前激活的模型A

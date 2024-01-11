@@ -16,7 +16,7 @@ class Mirror_Settings(bpy.types.PropertyGroup):
     )
             # 此处图标名'FILE_TICK'和'FILE_NEW'应替换为有效的Blender图标名称
     is_center: bpy.props.BoolProperty(name='对称',
-                                                  description="中间骨对称，左右骨镜像")
+                                                  description="开启时使中间骨骼对称权重，关闭时使左右两边的骨骼镜像权重")
 
     is_multiple:bpy.props.BoolProperty(name='多个',
-                                                  description="多个顶点组")
+                                                  description="镜像或者对称多个顶点组")

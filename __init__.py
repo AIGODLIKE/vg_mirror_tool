@@ -10,10 +10,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+import os
+
 import bpy
 from .ops import *
 from .prop import *
 from bpy.props import PointerProperty
+import bpy.utils.previews
 bl_info = {
     "name" : "顶点组助手",
     "author" : "幻之境_cupcko",
@@ -60,8 +63,11 @@ def sna_add_to_data_pt_vertex_groups_9E3D8(self, context):
         button = row.row(heading='', align=True)
 
         op = button.prop(obj_prop,'is_center', text='', toggle=True, icon_value=446, emboss=True, )
-        row_BCED0.enabled = obj_prop.is_center or obj_prop.is_mutiple
+        row_BCED0.enabled = obj_prop.is_center or obj_prop.is_multiple
         op = button.operator('vg.vg_mirror_weight', text='镜像顶点组', icon_value=0, emboss=True, depress=False)
+        pcoll = preview_collections["main"]
+        op = button.prop(obj_prop, 'is_multiple', text='', toggle=True, icon_value=pcoll['duo_icon'].icon_id, emboss=True, )
+
         op = button.prop(obj_prop, 'mirror_method', text='', icon_value=30, emboss=True, expand=False, slider=True,
                        toggle=False, invert_checkbox=False,
                        index=0)
@@ -77,7 +83,9 @@ def sna_add_to_data_pt_vertex_groups_9E3D8(self, context):
         if not True: split_68BC6.operator_context = "EXEC_DEFAULT"
         op = split_68BC6.operator('vg.vg_clear_unused', text='删除没有使用', icon_value=0, emboss=True, depress=False)
         op = split_68BC6.operator('vg.vg_remove_zero', text='删除权重为零', icon_value=0, emboss=True, depress=False)
-
+def load_icon(icon_name, icon_path, pcoll):
+    """ 加载并注册一个图标 """
+    pcoll.load(icon_name, icon_path, 'IMAGE')
 classes=[
 Mirror_Settings,
 Vg_clear_unused,
@@ -87,12 +95,23 @@ Vg_mirror_multiple_weights,
 
 
 ]
+#脚本目录
+script_dir=os.path.dirname(os.path.realpath(__file__))
+#图标目录
+icons_dir=os.path.join(script_dir, "icons")
+preview_collections = {}
 def register():
     from bpy.utils import register_class
     for c in classes:
         register_class(c)
+    #icon
+    global preview_collections
+    pcoll = bpy.utils.previews.new()
+    # 加载多个图标
+    load_icon("duo_icon", os.path.join(icons_dir, "duo.png"), pcoll)
+    load_icon("multiple_icon", os.path.join(icons_dir, "multiple.png"), pcoll)
 
-
+    preview_collections["main"] = pcoll
     bpy.types.DATA_PT_vertex_groups.append(sna_add_to_data_pt_vertex_groups_9E3D8)
     bpy.types.Object.mirror_settings = PointerProperty(type=Mirror_Settings)
 
@@ -100,6 +119,9 @@ def unregister():
     from bpy.utils import unregister_class
     for c in reversed(classes):
         unregister_class(c)
-
+    # icon
+    for pcoll in preview_collections.values():
+        bpy.utils.previews.remove(pcoll)
+    preview_collections.clear()
     bpy.types.DATA_PT_vertex_groups.remove(sna_add_to_data_pt_vertex_groups_9E3D8)
     del bpy.types.Object.mirror_settings
