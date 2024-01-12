@@ -80,105 +80,104 @@ class Vg_remove_zero(bpy.types.Operator):
 
 import re
 
+sides = [
+    {"left": "_L_", "right": "_R_"},
+    {"left": "_l_", "right": "_r_"},
+    {"left": "Left", "right": "Right"},
+    {"left": "left", "right": "right"},
+    {"left": "_l", "right": "_r"},
+    {"left": "_L", "right": "_R"},
+    {"left": ".l", "right": ".r"},
+    {"left": ".L", "right": ".R"},
 
-def determine_and_convert(vertex_group_name):
-    '''转换顶点组名称'''
+]
+
+
+def determine_and_convert(vertex_group_name, LR=None):
+    '''参数：顶点组名，顶点组位置
+        只有顶点组名时，返回左右转换后的顶点组名，中间顶点组不变
+        传入顶点组位置时，返回 顶点组位置是否匹配'''
     # 定义左右边的标识符及其转换规则
-    sides = [
-        {"left": "_L_", "right": "_R_"},
-        {"left": "_l_", "right": "_r_"},
-        {"left": "_l", "right": "_r"},
-        {"left": "_L", "right": "_R"},
-        {"left": ".l", "right": ".r"},
-        {"left": ".L", "right": ".R"},
-        {"left": "Left", "right": "Right"},
-        {"left": "left", "right": "right"},
-    ]
 
-    # 对每一组左右标识符进行检查和转换
-    for side in sides:
-        left_pattern = re.escape(side["left"])
-        right_pattern = re.escape(side["right"])
+    if LR:
+        if LR == 'center':
+            # 创建正则表达式模式，将所有左右标识符组合成一个正则表达式
+            pattern = "|".join([re.escape(side["left"]) + "|" + re.escape(side["right"]) for side in sides])
 
-        # 检查并替换左边标识符为右边标识符
-        if re.search(left_pattern, vertex_group_name, ):
-            return re.sub(left_pattern, side["right"], vertex_group_name, )
-        # 检查并替换右边标识符为左边标识符
-        elif re.search(right_pattern, vertex_group_name, ):
-            return re.sub(right_pattern, side["left"], vertex_group_name, )
+            # 使用正则表达式查找左右标识符
+            matches = re.findall(pattern, vertex_group_name)
 
-    # 如果没有找到任何匹配的标识符，返回原名称
-    print(vertex_group_name)
-    return vertex_group_name
-def Recognize_vg_name(vg_name):
+            # 如果没有找到任何匹配项，返回True；否则返回False
+            return not bool(matches)
 
+        # 对每一组左右标识符进行检查
+        for side in sides:
+            if sides.index(side)>3:#使用末尾查找
+                left_pattern = re.escape(side["left"]) + "$"
+                right_pattern = re.escape(side["right"]) + "$"
+            else:
+                left_pattern = re.escape(side["left"])
+                right_pattern = re.escape(side["right"])
 
+            # 查找L
+            if re.search(left_pattern, vertex_group_name, ) and LR == '-x':
+                return True
+            # 查找R
+            elif re.search(right_pattern, vertex_group_name, ) and LR == '+x':
+                return True
 
-def Mirror_based_on_selection():
-    # 获取当前活动对象
-    objs = bpy.context.selected_objects
-    rig = next((obj for obj in objs if obj.type == 'ARMATURE'), None)
-    if not rig:
-        return {'CANCELLED'}
-
-    # 获取选择顶点组
-    select_vg = []
-    for b in rig.data.bones:
-        if b.select:
-            select_vg.append(b.name)
-    return select_vg
-def Mirror_based_on_LR():
-    obj=bpy.context.object
-    v_groups=[]
-    if obj.type == 'MESH':
-        if obj.mirror_settings.left_right=='-x':
-            for vg in obj.vertex_groups:
-                if
-                v_groups.append(vg.name)
-
-def create_mirrored():
-    # 获取当前激活的模型A
-    model_a = bpy.context.view_layer.objects.active
-    model_a.select_set(True)
-    # 记录模型A当前激活顶点组a_g的名称
-    active_vg_name = model_a.vertex_groups.active.name
-
-    # 创建模型B和模型C为模型A的副本
-    model_b = model_a.copy()
-    model_b.data = model_a.data.copy()
-    model_b.name = "B"
-    bpy.context.collection.objects.link(model_b)
-
-    model_c = model_a.copy()
-    model_c.data = model_a.data.copy()
-    model_c.name = "C"
-    bpy.context.collection.objects.link(model_c)
-
-    bpy.context.view_layer.objects.active = model_b
-    return model_a, model_b, model_c,active_vg_name
-
-
-def symmetriy_ops(model_a,model_b):
-    # 激活模型B
-    # 添加并应用镜像修改器
-    mirror_mod = model_b.modifiers.new(name="Mirror", type='MIRROR')
-    mirror_mod.use_axis[0] = True
-    mirror_mod.use_bisect_axis[0] = True
-    if model_a.mirror_settings.left_right == '-x':
-        mirror_mod.use_bisect_flip_axis[0] = False
+        return False
     else:
-        mirror_mod.use_bisect_flip_axis[0] = True
+        # 对每一组左右标识符进行检查和转换
+        for side in sides:
+            left_pattern = re.escape(side["left"])
+            right_pattern = re.escape(side["right"])
 
-    for window in bpy.context.window_manager.windows:
-        screen = window.screen
-        for area in screen.areas:
-            if area.type == 'VIEW_3D':
-                with bpy.context.temp_override(window=window, area=area, active_object=model_b):
-                    # bpy.ops.screen.screen_full_area()
-                    bpy.ops.object.modifier_apply(modifier='Mirror')
-                break
+            # 检查并替换左边标识符为右边标识符
+            if re.search(left_pattern, vertex_group_name, ):
+                return re.sub(left_pattern, side["right"], vertex_group_name, )
+            # 检查并替换右边标识符为左边标识符
+            elif re.search(right_pattern, vertex_group_name, ):
+                return re.sub(right_pattern, side["left"], vertex_group_name, )
 
-    # 添加并应用切分修改器
+        # 如果没有找到任何匹配的标识符，返回原名称
+        print(vertex_group_name)
+        return vertex_group_name
+
+
+def clean_vertex_groups(obj, keep_groups):
+    """
+    删除不在 keep_groups 列表中的顶点组。
+
+    :param obj: 要处理的Blender对象。
+    :param keep_groups: 要保留的顶点组名称列表。
+    """
+    # 确保对象有顶点组
+    if not hasattr(obj, 'vertex_groups'):
+        print("对象没有顶点组")
+        return
+
+    # 循环遍历顶点组
+    for vg in obj.vertex_groups[:]:
+        if vg.name not in keep_groups:
+            # 删除不在列表中的顶点组
+            obj.vertex_groups.remove(vg)
+
+
+def check_for_matching_pairs(string_list, sides):
+    # 对于每对标识符，检查是否在列表中的某个字符串中出现
+    for side in sides:
+        left_pattern = re.compile(re.escape(side['left']))
+        right_pattern = re.compile(re.escape(side['right']))
+
+        left_exists = any(left_pattern.search(string) for string in string_list)
+        right_exists = any(right_pattern.search(string) for string in string_list)
+
+        if left_exists and right_exists:
+            return True  # 找到至少一对匹配的标识符
+
+    return False
+
 
 class Vg_mirror_weight(bpy.types.Operator):
     """镜像顶点权重"""
@@ -192,33 +191,106 @@ class Vg_mirror_weight(bpy.types.Operator):
         model_a = bpy.context.view_layer.objects.active
         return model_a is not None and model_a.type == 'MESH' and len(model_a.vertex_groups)
 
-    def execute(self, context):
-        temp_mode = bpy.context.object.mode
+    def mirror_based_on_selection(self):
+        '''返回选择的顶点组'''
+        # 获取当前活动对象
+        objs = bpy.context.selected_objects
+        rig = next((obj for obj in objs if obj.type == 'ARMATURE'), None)
+        if not rig:
+            return {'CANCELLED'}
 
-        # 确保Blender处于对象模式
-        bpy.ops.object.mode_set(mode='OBJECT')
-        # bpy.ops.object.select_all(action='DESELECT')
-        model_a, model_b, model_c,active_vg_name = create_mirrored()
+        # 获取选择顶点组
+        select_vg = []
+        for b in rig.data.bones:
+            if b.select:
+                select_vg.append(b.name)
+        return select_vg
 
-        if model_a.mirror_settings.is_center:
-            symmetriy_ops(model_a, model_b)
+    def mirror_based_on_LR(self,ms):
+        '''返回左右两边的其中一边的顶点组'''
+        obj = bpy.context.object
+        v_groups = []
+        LR = ms.left_right
+        if obj.type == 'MESH':
+
+            for vg in obj.vertex_groups:
+                if determine_and_convert(vg.name, LR):
+                    v_groups.append(vg.name)
+        return v_groups
+
+    def mirror_based_on_center(self):
+        '''返回处于模型中心的顶点组'''
+        obj = bpy.context.object
+        v_groups = []
+
+        if obj.type == 'MESH':
+            for vg in obj.vertex_groups:
+                if determine_and_convert(vg.name, 'center'):
+                    v_groups.append(vg.name)
+    def create_mirrored(self, model_a, name_weight, name_trans):
+        '''创建权重模型，权重转移模型，
+        返回原模型，
+        权重模型，
+        传输模型，
+        激活顶点组名'''
+        # 获取当前激活的模型A
+
+        # 记录模型A当前激活顶点组a_g的名称
+        active_vg_name = model_a.vertex_groups.active.name
+
+        # 创建模型B和模型C为模型A的副本
+        model_b = model_a.copy()
+        model_b.data = model_a.data.copy()
+        model_b.name = name_weight
+        model_b.data.name = name_weight
+        bpy.context.collection.objects.link(model_b)
+
+        model_c = model_a.copy()
+        model_c.data = model_a.data.copy()
+        model_c.name = name_trans
+        model_c.data.name = name_trans
+
+        bpy.context.collection.objects.link(model_c)
+
+        bpy.context.view_layer.objects.active = model_b
+        return model_b, model_c, active_vg_name
+
+    def symmetriy_ops(self, ms, model_b):
+        '''对称中间骨权重'''
+        # 激活模型B
+        # 添加并应用镜像修改器
+        mirror_mod = model_b.modifiers.new(name="Mirror", type='MIRROR')
+        mirror_mod.use_axis[0] = True
+        mirror_mod.use_bisect_axis[0] = True
+        if ms.left_right == '-x':
+            mirror_mod.use_bisect_flip_axis[0] = False
         else:
-            # 在X轴上缩放模型B为-1，实现镜像
-            model_b.scale.x *= -1
-            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            mirror_mod.use_bisect_flip_axis[0] = True
 
-        # 确保变更生效
-        bpy.context.view_layer.update()
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    with bpy.context.temp_override(window=window, area=area, active_object=model_b):
+                        # bpy.ops.screen.screen_full_area()
+                        bpy.ops.object.modifier_apply(modifier='Mirror')
+                    break
+
+        # 添加并应用切分修改器
+
+    def transfer_vg(self, origin, source, result):
+        '''转移权重，应用修改器'''
+        bpy.context.view_layer.objects.active = result
+        result.select_set(True)
 
         # 为模型C添加DataTransfer修改器，传递模型B的顶点组
-        # bpy.ops.object.select_all(action='DESELECT')
-        bpy.context.view_layer.objects.active = model_c
-        model_c.select_set(True)
-        data_transfer_mod = model_c.modifiers.new(name="DataTransferC", type='DATA_TRANSFER')
-        data_transfer_mod.object = model_b
+        bpy.context.view_layer.objects.active = result
+        result.select_set(True)
+        data_transfer_mod = result.modifiers.new(name="DataTransferC", type='DATA_TRANSFER')
+        data_transfer_mod.object = source
         data_transfer_mod.use_vert_data = True
         data_transfer_mod.data_types_verts = {'VGROUP_WEIGHTS'}
-        if model_a.mirror_settings.mirror_method == 'POLYINTERP_NEAREST':
+        if origin.mirror_settings.mirror_method == 'POLYINTERP_NEAREST':
             data_transfer_mod.vert_mapping = 'POLYINTERP_NEAREST'
         else:
             data_transfer_mod.vert_mapping = 'NEAREST'
@@ -227,40 +299,106 @@ class Vg_mirror_weight(bpy.types.Operator):
             screen = window.screen
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
-                    with context.temp_override(window=window, area=area, active_object=model_b):
+                    with bpy.context.temp_override(window=window, area=area, active_object=source):
                         # bpy.ops.screen.screen_full_area()
                         bpy.ops.object.datalayout_transfer(modifier="DataTransferC")
                         bpy.ops.object.modifier_apply(modifier="DataTransferC")
                     break
 
-        # 清理模型C的顶点组，只留下a_g
-        for vg in model_c.vertex_groups:
-            if vg.name != active_vg_name:
-                model_c.vertex_groups.remove(vg)
-        if model_a.mirror_settings.is_center:
-            mirrored = model_c.vertex_groups.active.name
-        else:
-            mirrored = determine_and_convert(model_c.vertex_groups.active.name)
-        model_c.vertex_groups.active.name = mirrored
-        # 为模型A添加DataTransfer修改器，传递模型C的a_g顶点组
-        # bpy.ops.object.select_all(action='DESELECT')
-        bpy.context.view_layer.objects.active = model_a
-        model_a.select_set(True)
-        data_transfer_mod_a = model_a.modifiers.new(name="DataTransferA", type='DATA_TRANSFER')
-        data_transfer_mod_a.object = model_c
-        data_transfer_mod_a.use_vert_data = True
-        data_transfer_mod_a.data_types_verts = {'VGROUP_WEIGHTS'}
-        if model_a.mirror_settings.mirror_method == 'POLYINTERP_NEAREST':
-            data_transfer_mod_a.vert_mapping = 'POLYINTERP_NEAREST'
-        else:
-            data_transfer_mod_a.vert_mapping = 'NEAREST'
-        # 应用DataTransfer修改器到模型A
-        bpy.ops.object.datalayout_transfer(modifier="DataTransferA")
-        bpy.ops.object.modifier_apply(modifier=data_transfer_mod_a.name)
-        model_a.vertex_groups.active_index = model_a.vertex_groups.find(mirrored)
+    def execute(self, context):
+        temp_mode = bpy.context.object.mode
 
-        bpy.data.meshes.remove(model_b.data)
-        bpy.data.meshes.remove(model_c.data)
+        # 确保Blender处于对象模式
+        bpy.ops.object.mode_set(mode='OBJECT')
+        model_a = bpy.context.view_layer.objects.active
+        model_a.select_set(True)
+        ms=model_a.mirror_settings
+        '''按选择骨骼镜像时，处理方式不同'''
+        # 处理选择的骨骼顶点组 权重
+        if ms.is_selected:
+            v_groups = self.mirror_based_on_selection()
+            if check_for_matching_pairs(v_groups, sides):
+                self.report({"ERROR"}, "不能同时选择左右两边的骨骼！")
+                bpy.ops.object.mode_set(mode=temp_mode)
+                return {'CANCELLED'}
+            # 对称权重
+            model_b_sym, model_c_sym, active_vg_name = self.create_mirrored(model_a, 'model_b_sym', 'model_c_sym')
+            self.symmetriy_ops(ms, model_b_sym)
+            self.transfer_vg(model_a, model_c_sym, model_a)
+
+            # 镜像权重
+            model_b_mir, model_c_mir, active_vg_name = self.create_mirrored(model_a, 'model_b_mir', 'model_c_mir')
+            model_b_mir.scale.x*=-1
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            self.transfer_vg(model_a, model_c_mir, model_a)
+
+
+        # 处理单个顶点组
+        else:
+            model_b, model_c, active_vg_name = self.create_mirrored(model_a, 'model_b', 'model_c')
+            if ms.is_center:
+                self.symmetriy_ops(ms, model_b)
+            else:
+                # 在X轴上缩放模型B为-1，实现镜像
+                model_b.scale.x *= -1
+                bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            self.transfer_vg(model_a, model_b, model_c)
+        # 确保变更生效
+        # bpy.context.view_layer.update()
+
+        # 单个顶点组
+        if not ms.is_multiple:
+            # 清理模型C的顶点组，只留下a_g
+            clean_vertex_groups(model_c,[active_vg_name])
+            # for vg in model_c.vertex_groups:
+            #     if vg.name != active_vg_name:
+            #         model_c.vertex_groups.remove(vg)
+            # 更改镜像后的顶点组名称
+            if ms.is_center:
+                mirrored = model_c.vertex_groups.active.name
+            else:
+                mirrored = determine_and_convert(model_c.vertex_groups.active.name)
+            model_c.vertex_groups.active.name = mirrored
+            # 为模型A添加DataTransfer修改器，传递模型C的a_g顶点组
+            self.transfer_vg(model_a, model_c, model_a)
+            bpy.data.meshes.remove(model_b.data)
+            bpy.data.meshes.remove(model_c.data)
+        # 多个顶点组
+        else:
+            
+            # 按中间镜像
+            if ms.is_center and not ms.is_selected:
+                v_groups = self.mirror_based_on_center()
+                for vg in model_c.vertex_groups[:]:
+                    if vg.name not in v_groups:
+                        model_c.vertex_groups.remove(vg)
+
+            # 按左右镜像
+            elif not ms.is_center and not ms.is_selected:
+                v_groups=self.mirror_based_on_LR(ms)
+                print(v_groups)
+                for vg in model_c.vertex_groups[:]:
+                    if vg.name not in v_groups:
+                        model_c.vertex_groups.remove(vg)
+            # 按选择镜像
+            elif ms.is_selected:
+                v_groups=self.mirror_based_on_selection()
+                print(f'选择的{v_groups}')
+                #留下中间的顶点组
+                for vg in model_c_sym.vertex_groups[:]:
+                    # print(vg.name)
+                    if not determine_and_convert(vg.name,'center'):
+                        # print(f'shanchu{vg.name}')
+                        model_c_sym.vertex_groups.remove(vg)
+                clean_vertex_groups(model_c_sym,v_groups)
+                #留下对应的左右边顶点组
+                for vg in model_c_mir.vertex_groups[:]:
+                    if determine_and_convert(vg.name,'center'):
+                        model_c_mir.vertex_groups.remove(vg)
+                for vg in model_c_mir.vertex_groups[:]:
+                    print(vg.name)
+                clean_vertex_groups(model_c_mir, v_groups)
+        model_a.vertex_groups.active_index = model_a.vertex_groups.find(mirrored)
 
         bpy.ops.object.mode_set(mode=temp_mode)
         return {'FINISHED'}

@@ -67,6 +67,7 @@ def sna_add_to_data_pt_vertex_groups_9E3D8(self, context):
         op = button.operator('vg.vg_mirror_weight', text='镜像顶点组', icon_value=0, emboss=True, depress=False)
         pcoll = preview_collections["main"]
         op = button.prop(obj_prop, 'is_multiple', text='', toggle=True, icon_value=pcoll['duo_icon'].icon_id, emboss=True, )
+        op = button.prop(obj_prop, 'is_selected', text='', toggle=True, icon_value=pcoll['xuan_icon'].icon_id, emboss=True, )
 
         op = button.prop(obj_prop, 'mirror_method', text='', icon_value=30, emboss=True, expand=False, slider=True,
                        toggle=False, invert_checkbox=False,
@@ -109,7 +110,9 @@ def register():
     pcoll = bpy.utils.previews.new()
     # 加载多个图标
     load_icon("duo_icon", os.path.join(icons_dir, "duo.png"), pcoll)
+    load_icon("xuan_icon", os.path.join(icons_dir, "xuan.png"), pcoll)
     load_icon("multiple_icon", os.path.join(icons_dir, "multiple.png"), pcoll)
+    load_icon("selected_icon", os.path.join(icons_dir, "selected.png"), pcoll)
 
     preview_collections["main"] = pcoll
     bpy.types.DATA_PT_vertex_groups.append(sna_add_to_data_pt_vertex_groups_9E3D8)
