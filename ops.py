@@ -113,8 +113,14 @@ def determine_and_convert(vertex_group_name, LR=None):
         # 对每一组左右标识符进行检查
         for side in sides:
             if sides.index(side)>3:#使用末尾查找
-                left_pattern = re.escape(side["left"]) + "$"
-                right_pattern = re.escape(side["right"]) + "$"
+                # 定义左右标识符的组合正则表达式
+                combined_pattern = "|".join(
+                    [re.escape(side["left"]) + "|" + re.escape(side["right"]) for side in sides])
+
+                # 使用负向预查来确保左右标识符后面不是其他左右标识符
+                pattern = f"(?:(?!{combined_pattern}).)*$"
+                left_pattern = re.escape(side["left"]) + pattern
+                right_pattern = re.escape(side["right"]) + pattern
             else:
                 left_pattern = re.escape(side["left"])
                 right_pattern = re.escape(side["right"])
@@ -130,8 +136,18 @@ def determine_and_convert(vertex_group_name, LR=None):
     else:
         # 对每一组左右标识符进行检查和转换
         for side in sides:
-            left_pattern = re.escape(side["left"])
-            right_pattern = re.escape(side["right"])
+            if sides.index(side)>3:#使用末尾查找
+                # 定义左右标识符的组合正则表达式
+                combined_pattern = "|".join(
+                    [re.escape(side["left"]) + "|" + re.escape(side["right"]) for side in sides])
+
+                # 使用负向预查来确保左右标识符后面不是其他左右标识符
+                pattern = f"(?:(?!{combined_pattern}).)*$"
+                left_pattern = re.escape(side["left"]) + pattern
+                right_pattern = re.escape(side["right"]) + pattern
+            else:
+                left_pattern = re.escape(side["left"])
+                right_pattern = re.escape(side["right"])
 
             # 检查并替换左边标识符为右边标识符
             if re.search(left_pattern, vertex_group_name, ):
@@ -227,6 +243,7 @@ class Vg_mirror_weight(bpy.types.Operator):
             for vg in obj.vertex_groups:
                 if determine_and_convert(vg.name, 'center'):
                     v_groups.append(vg.name)
+        return v_groups
     def create_mirrored(self, model_a, name_weight, name_trans):
         '''创建权重模型，权重转移模型，
         返回原模型，
@@ -324,13 +341,13 @@ class Vg_mirror_weight(bpy.types.Operator):
             # 对称权重
             model_b_sym, model_c_sym, active_vg_name = self.create_mirrored(model_a, 'model_b_sym', 'model_c_sym')
             self.symmetriy_ops(ms, model_b_sym)
-            self.transfer_vg(model_a, model_c_sym, model_a)
+            self.transfer_vg(model_a, model_b_sym, model_c_sym)
 
             # 镜像权重
             model_b_mir, model_c_mir, active_vg_name = self.create_mirrored(model_a, 'model_b_mir', 'model_c_mir')
             model_b_mir.scale.x*=-1
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-            self.transfer_vg(model_a, model_c_mir, model_a)
+            self.transfer_vg(model_a, model_b_mir, model_c_mir)
 
 
         # 处理单个顶点组
@@ -350,9 +367,7 @@ class Vg_mirror_weight(bpy.types.Operator):
         if not ms.is_multiple:
             # 清理模型C的顶点组，只留下a_g
             clean_vertex_groups(model_c,[active_vg_name])
-            # for vg in model_c.vertex_groups:
-            #     if vg.name != active_vg_name:
-            #         model_c.vertex_groups.remove(vg)
+
             # 更改镜像后的顶点组名称
             if ms.is_center:
                 mirrored = model_c.vertex_groups.active.name
@@ -361,8 +376,7 @@ class Vg_mirror_weight(bpy.types.Operator):
             model_c.vertex_groups.active.name = mirrored
             # 为模型A添加DataTransfer修改器，传递模型C的a_g顶点组
             self.transfer_vg(model_a, model_c, model_a)
-            bpy.data.meshes.remove(model_b.data)
-            bpy.data.meshes.remove(model_c.data)
+
         # 多个顶点组
         else:
             
@@ -372,7 +386,8 @@ class Vg_mirror_weight(bpy.types.Operator):
                 for vg in model_c.vertex_groups[:]:
                     if vg.name not in v_groups:
                         model_c.vertex_groups.remove(vg)
-
+                print(v_groups)
+                self.transfer_vg(model_a, model_c, model_a)
             # 按左右镜像
             elif not ms.is_center and not ms.is_selected:
                 v_groups=self.mirror_based_on_LR(ms)
@@ -380,6 +395,9 @@ class Vg_mirror_weight(bpy.types.Operator):
                 for vg in model_c.vertex_groups[:]:
                     if vg.name not in v_groups:
                         model_c.vertex_groups.remove(vg)
+                for vg in model_c.vertex_groups[:]:
+                    vg.name=determine_and_convert(vg.name)
+                self.transfer_vg(model_a, model_c, model_a)
             # 按选择镜像
             elif ms.is_selected:
                 v_groups=self.mirror_based_on_selection()
@@ -398,8 +416,25 @@ class Vg_mirror_weight(bpy.types.Operator):
                 for vg in model_c_mir.vertex_groups[:]:
                     print(vg.name)
                 clean_vertex_groups(model_c_mir, v_groups)
-        model_a.vertex_groups.active_index = model_a.vertex_groups.find(mirrored)
+                for vg in model_c_mir.vertex_groups[:]:
+                    vg.name=determine_and_convert(vg.name)
+                self.transfer_vg(model_a, model_c_sym, model_a)
+                self.transfer_vg(model_a, model_c_mir, model_a)
 
+            #激活顶点组
+            mirrored = active_vg_name
+        try:
+            bpy.data.meshes.remove(model_b.data)
+            bpy.data.meshes.remove(model_c.data)
+
+        except:
+            bpy.data.meshes.remove(model_b_mir.data)
+            bpy.data.meshes.remove(model_b_sym.data)
+            bpy.data.meshes.remove(model_c_mir.data)
+            bpy.data.meshes.remove(model_c_sym.data)
+
+        model_a.vertex_groups.active_index = model_a.vertex_groups.find(mirrored)
+        bpy.context.view_layer.objects.active = model_a
         bpy.ops.object.mode_set(mode=temp_mode)
         return {'FINISHED'}
 
