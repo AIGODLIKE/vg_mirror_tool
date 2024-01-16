@@ -1,24 +1,28 @@
 import bpy
+from bpy.app.translations import pgettext as _
+
+
 class Mirror_Settings(bpy.types.PropertyGroup):
     mirror_method: bpy.props.EnumProperty(
-        name="镜像方法",
-        description="左右对称时最近点效果好，不对称时面插值",
-        items=(("NEAREST", "最近点", "最近的顶点"),
-               ("POLYINTERP_NEAREST", "面插值", "最近的面插值"),
+        name=_("Mirror method"),
+        description=_(
+            "When left and right are symmetrical, the nearest point effect is better; when they are not symmetrical, use face interpolation."),
+        items=(("NEAREST", "Nearest", "Nearest vertex"),
+               ("POLYINTERP_NEAREST", "Polyinterp", "Nearest face interpolation"),
                ))
     left_right: bpy.props.EnumProperty(
-            name="镜像方向",
-            description="选择镜像方向",
-            items=(("-x", "", "(-x箭头<-)使用右边权重+x->-x",'BACK', 1),
-                   ("+x", "", "(+x箭头->)使用左边权重-x->+x",'FORWARD', 2),
-                   )
+        name="Mirror direction",
+        description="Select mirror direction",
+        items=(("-x", "", "(-x arrow<-) Use the weight on the right side +x -> -x", 'BACK', 1),
+               ("+x", "", "(+x arrow->) Use the weight on the left side -x -> +x", 'FORWARD', 2),
+               )
 
     )
-            # 此处图标名'FILE_TICK'和'FILE_NEW'应替换为有效的Blender图标名称
-    is_center: bpy.props.BoolProperty(name='对称',
-                                                  description="开启时使中间骨骼对称权重，关闭时使左右两边的骨骼镜像权重")
+    # 此处图标名'FILE_TICK'和'FILE_NEW'应替换为有效的Blender图标名称
+    is_center: bpy.props.BoolProperty(name='Symmetric',
+                                      description="When enabled, make the middle bone symmetrical weight; when disabled, mirror the weight between the left and right bones.")
 
-    is_multiple:bpy.props.BoolProperty(name='多个顶点组',
-                                                  description="镜像或者对称多个顶点组")
-    is_selected:bpy.props.BoolProperty(name='选中的',
-                                              description="镜像或者对称选中的顶点组(选中的骨骼，需要在权重绘制模式)")
+    is_multiple: bpy.props.BoolProperty(name='Multiple vertex groups',
+                                        description="Mirror or symmetrize multiple vertex groups.")
+    is_selected: bpy.props.BoolProperty(name='Selected',default=False,
+                                        description="Mirror or symmetrize selected vertex groups (selected bones, in weight paint mode)")
