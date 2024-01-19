@@ -84,8 +84,6 @@ import re
 sides = [
     {"left": "_L_", "right": "_R_"},
     {"left": "_l_", "right": "_r_"},
-    {"left": "Left", "right": "Right"},
-    {"left": "left", "right": "right"},
     {"left": "_l", "right": "_r"},
     {"left": "_L", "right": "_R"},
     {"left": ".l", "right": ".r"},
@@ -120,23 +118,12 @@ def determine_and_convert(vertex_group_name, LR=None):
         return [not bool(matches), None, vertex_group_name]
     elif LR == None:
         # 构建匹配左边标识符的正则表达式，并准备替换的映射
-        # pattern = "|".join([re.escape(side["left"]) for side in sides])
+
         pattern = "|".join([re.escape(side["left"]) + "|" + re.escape(side["right"]) for side in sides])
-        # replace_map = {side["left"]: side["right"] for side in sides}
+
         replace_map = {**{side["left"]: side["right"] for side in sides},
                        **{side["right"]: side["left"] for side in sides}}
-        # 查找所有匹配项
-        # matches = re.finditer(pattern, vertex_group_name)
-        # last_match = None
-        # for match in matches:
-        #     last_match = match
-        #
-        # # 如果找到匹配项，则仅替换最后一个匹配项
-        # if last_match:
-        #     replaced_string = vertex_group_name[:last_match.start()] + replace_map[last_match.group()] + vertex_group_name[last_match.end():]
-        #     return [True, last_match.group(), replaced_string]
-        # else:
-        #     return [False, None, vertex_group_name]
+
     # 查找所有匹配项
     matches = re.findall(pattern, vertex_group_name)
     if not matches:
@@ -179,6 +166,7 @@ def check_for_matching_pairs(string_list, sides):
         right_exists = any(right_pattern.search(string) for string in string_list)
 
         if left_exists and right_exists:
+            print(_("Found matching pairs:"))
             return True  # 找到至少一对匹配的标识符
 
     return False

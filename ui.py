@@ -51,8 +51,7 @@ def sna_add_to_data_pt_vertex_groups(self, context):
     split = column.split(align=True)
     split.operator('vg.vg_clear_unused', text='Clear unused')
     split.operator('vg.vg_remove_zero', text='Clear zero')
-    if obj_prop.is_selected:
-        obj_prop.is_multiple = True
+
 
 def register():
     bpy.types.DATA_PT_vertex_groups.append(sna_add_to_data_pt_vertex_groups)
