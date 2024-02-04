@@ -283,6 +283,11 @@ class Vg_mirror_weight(bpy.types.Operator):
                 if area.type == 'VIEW_3D':
                     with bpy.context.temp_override(window=window, area=area, active_object=model_b):
                         # bpy.ops.screen.screen_full_area()
+                        if model_b.active_shape_key is not None:
+                            if model_b.active_shape_key.value or model_b.show_only_shape_key:
+                                bpy.ops.object.shape_key_remove(all=True, apply_mix=True)
+                        model_b.shape_key_clear()
+
                         bpy.ops.object.modifier_apply(modifier='Mirror')
                     break
 
