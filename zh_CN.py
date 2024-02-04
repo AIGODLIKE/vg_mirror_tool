@@ -24,10 +24,12 @@ data = {
     'Multiple vertex groups': '多个顶点组',
     'Mirror or symmetrize multiple vertex groups.': '镜像或者对称多个顶点组',
     'Selected': '选中的',
+    'Delete vertex groups with a total weight of 0': '删除总权重为0的顶点组',
     'Mirror or symmetrize selected vertex groups (selected bones, in weight paint mode)': '镜像或者对称选中的顶点组(选中的骨骼，需要在权重绘制模式)',
     'When enabled, make the middle bone symmetrical weight; when disabled, mirror the weight between the left and right bones.': '开启时使中间骨骼对称权重，关闭时使左右两边的骨骼镜像权重',
     '(-x arrow<-) Use the weight on the right side +x -> -x': '(-x箭头<-)使用右边权重+x->-x',
     '(+x arrow->) Use the weight on the left side -x -> +x': '(+x箭头->)使用左边权重-x->+x',
     'When left and right are symmetrical, the nearest point effect is better; when they are not symmetrical, use face interpolation.': '左右对称时最近点效果好，左右不对称时使用面插值',
+    "Delete unused vertex groups (deformation bones, modifiers), excluding those used by other objects.": '删除没有使用的顶点组（形变骨骼，修改器），不包括被其他物体使用的顶点组',
 
 }

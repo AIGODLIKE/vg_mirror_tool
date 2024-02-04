@@ -3,7 +3,7 @@ from bpy.app.translations import pgettext as _
 
 
 class Vg_clear_unused(bpy.types.Operator):
-    """删除没有使用的顶点组（形变骨骼，修改器），不包括被其他物体使用的顶点组"""
+    """Delete unused vertex groups (deformation bones, modifiers), excluding those used by other objects."""
 
     bl_idname = "vg.vg_clear_unused"
     bl_label = "Delete unused vertex groups."
@@ -39,7 +39,7 @@ class Vg_clear_unused(bpy.types.Operator):
 
 
 class Vg_remove_zero(bpy.types.Operator):
-    """删除权重为0的顶点组"""
+    """Delete vertex groups with a total weight of 0"""
 
     bl_idname = "vg.vg_remove_zero"
     bl_label = "Delete vertex groups with a total weight of 0 within the vertex group."
