@@ -76,38 +76,54 @@ Selecting the right arrow will copy the weights from the left side to the right 
 
 ![](image/中间无标识符右_6nDljRTwT9.gif)
 
-## 批量镜像
+## 批量镜像multiple mirror
 
-### 左右
+### 左右 left or right
 
 点击多按钮会开启批量模式,这是选择左箭头会将右边权重全部镜像到左边
+
+Clicking multiple buttons will activate batch mode. Selecting the left arrow will mirror all weights from the right to the left.
 
 ![](image/全部镜像到左_jVCKKz3MGf.gif)
 
 选择右箭头会将左边权重全部镜像到右边
 
+Selecting the right arrow will mirror all weights from the left to the right.
+
 ![](image/全部镜像到右_bxHlcK2md-.gif)
 
-### 中间
+### 中间middle
 
 开启批量模式同时开启对称
 
+Enable batch mode and symmetrical operation simultaneously.
+
 再选择箭头会将中间顶点组的权重按照对应方向对称
+
+Selecting the arrow again will symmetrize the weights of the middle vertex group in the corresponding direction.
 
 ![](<image/批量对称中间 (1)_PHVVTEzFiR.gif>)
 
-### 按选择
+### 按选择by selection
 
 在骨骼权重绘制模式下,可以按选择的骨骼将中间骨骼对称权重,同时将左边或者右边的骨骼镜像到另一侧
 
+In bone weight paint mode, you can symmetrize the weights of the middle bone by selecting the corresponding bones, and simultaneously mirror the bones from the left or right side to the other side.
+
 注意:不可以同时选择左右两边的骨骼.插件无法识别对称到哪一边
+
+Note: You cannot select bones from both the left and right sides simultaneously. The plugin cannot determine which side to symmetrize to.
 
 ![](image/按选择对称_414A0JAGbt.gif)
 
-## 删除没有使用
+## 删除没有使用Delete unused
 
 可以删除没有被deform权重骨和自身修改器使用的顶点组
 
-## 删除权重为0
+You can delete vertex groups that are not used by deform weights or self modifiers.
+
+## 删除权重为0Delete zero weights
 
 可以删除顶点组内所有顶点权重相加为0的顶点组
+
+You can delete vertex groups in which the sum of all vertex weights is zero.
