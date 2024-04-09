@@ -7,12 +7,12 @@
   - [面插值Polyinterp](#面插值Polyinterp)
 - [镜像左右mirror left and right](#镜像左右mirror-left-and-right)
 - [镜像中间mirror the middle](#镜像中间mirror-the-middle)
-- [批量镜像](#批量镜像)
-  - [左右](#左右)
-  - [中间](#中间)
-  - [按选择](#按选择)
-- [删除没有使用](#删除没有使用)
-- [删除权重为0](#删除权重为0)
+- [批量镜像multiple mirror](#批量镜像)
+  - [左右left and right](#左右)
+  - [中间middle](#中间)
+  - [按选择by selection](#按选择)
+- [删除没有使用Delete unused](#删除没有使用)
+- [删除权重为0Delete zero weights](#删除权重为0)
 
 ## 镜像方法
 
